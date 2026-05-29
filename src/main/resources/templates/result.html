@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>블로그 글 생성 결과</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: #f5f5f5; padding: 30px; }
+    .container { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; margin-bottom: 30px; font-size: 22px; }
+    .result-box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 24px; white-space: pre-wrap; line-height: 1.8; font-size: 14px; color: #333; min-height: 300px; }
+    .btn-wrap { display: flex; gap: 12px; margin-top: 20px; }
+    .btn { flex: 1; padding: 14px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .btn-copy { background: #2d6df6; color: #fff; }
+    .btn-copy:hover { background: #1a56d6; }
+    .btn-back { background: #eee; color: #333; }
+    .btn-back:hover { background: #ddd; }
+    .char-count { text-align: right; margin-top: 8px; font-size: 13px; color: #888; }
+    .toast { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>✅ 블로그 글 생성 완료!</h1>
+
+  <div class="result-box" id="resultText" th:text="${result}"></div>
+  <div class="char-count" id="charCount"></div>
+
+  <div class="btn-wrap">
+    <button class="btn btn-copy" onclick="copyText()">📋 복사하기</button>
+    <button class="btn btn-back" onclick="location.href='/'">🔙 다시 작성</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">클립보드에 복사되었습니다! 👍</div>
+
+<script>
+  // 글자수 표시
+  var text = document.getElementById('resultText').innerText;
+  document.getElementById('charCount').innerText = '총 ' + text.length + '자';
+
+  // 복사 기능
+  function copyText() {
+      var text = document.getElementById('resultText').innerText;
+      navigator.clipboard.writeText(text).then(function() {
+          var toast = document.getElementById('toast');
+          toast.style.display = 'block';
+          setTimeout(function() { toast.style.display = 'none'; }, 2000);
+      });
+  }
+</script>
+</body>
+</html>

@@ -26,23 +26,21 @@ public class BlogController {
         try {
             String result = blogGeneratorService.generateBlogPost(dto);
             model.addAttribute("result", result);
-            model.addAttribute("blogRequest", dto);
+            model.addAttribute("dto", dto);
             return "result";
 
         } catch (RuntimeException e) {
             String msg = e.getMessage();
             String errorMsg;
-
             if ("QUOTA_EXCEEDED".equals(msg)) {
-                errorMsg = "❌ 오늘 무료 사용 한도를 초과했어요! 내일 자정 이후 다시 시도해주세요.";
+                errorMsg = "❌ 사용 한도 초과! 잠시 후 다시 시도해주세요.";
             } else if ("PAYMENT_REQUIRED".equals(msg)) {
-                errorMsg = "❌ 유료 전환이 필요한 요청이에요. 무료 한도 내에서만 사용 가능합니다.";
+                errorMsg = "❌ API 결제 확인이 필요합니다.";
             } else if ("FORBIDDEN".equals(msg)) {
-                errorMsg = "❌ API 키 권한이 없어요. API 키를 확인해주세요.";
+                errorMsg = "❌ API 키를 확인해주세요.";
             } else {
-                errorMsg = "❌ 오류가 발생했어요: " + msg;
+                errorMsg = "❌ 오류 발생: " + msg;
             }
-
             model.addAttribute("errorMsg", errorMsg);
             model.addAttribute("blogRequest", dto);
             return "index";

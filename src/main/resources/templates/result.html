@@ -2,52 +2,165 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>블로그 글 생성 결과</title>
+  <title>포스팅 결과 - 렌트제이카</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Noto Sans KR', sans-serif; background: #f5f5f5; padding: 30px; }
-    .container { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #333; margin-bottom: 30px; font-size: 22px; }
-    .result-box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 24px; white-space: pre-wrap; line-height: 1.8; font-size: 14px; color: #333; min-height: 300px; }
-    .btn-wrap { display: flex; gap: 12px; margin-top: 20px; }
-    .btn { flex: 1; padding: 14px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    .btn-copy { background: #2d6df6; color: #fff; }
-    .btn-copy:hover { background: #1a56d6; }
-    .btn-back { background: #eee; color: #333; }
-    .btn-back:hover { background: #ddd; }
-    .char-count { text-align: right; margin-top: 8px; font-size: 13px; color: #888; }
-    .toast { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; }
+    body { font-family: 'Malgun Gothic', sans-serif; background: #f0f2f5; padding: 20px; }
+    .wrap { max-width: 950px; margin: 0 auto; }
+    h1 { text-align: center; color: #1a1a2e; padding: 20px 0 5px; font-size: 20px; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 13px; }
+    .card { background: #fff; border-radius: 10px; padding: 22px 26px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .card h2 { font-size: 15px; color: #333; border-left: 4px solid #e63946; padding-left: 10px; margin-bottom: 16px; }
+    textarea.result-box { width: 100%; height: 420px; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; line-height: 1.8; font-family: 'Malgun Gothic', sans-serif; resize: vertical; }
+    .btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .btn { padding: 10px 22px; border: none; border-radius: 7px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .btn-copy  { background: #457b9d; color: #fff; }
+    .btn-back  { background: #6c757d; color: #fff; }
+    .btn-print { background: #2d6a4f; color: #fff; }
+
+    /* 견적서 */
+    .quote-title { font-size: 20px; font-weight: bold; text-align: center; color: #1a1a2e; margin-bottom: 6px; }
+    .quote-sub   { text-align: center; color: #666; font-size: 12px; margin-bottom: 18px; }
+    .quote-car   { background: #1a1a2e; color: #fff; border-radius: 8px; padding: 14px 20px; margin-bottom: 14px; }
+    .quote-car .car-name   { font-size: 17px; font-weight: bold; }
+    .quote-car .car-detail { font-size: 12px; color: #ccc; margin-top: 5px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .info-item { background: #f8f9fa; border-radius: 6px; padding: 9px 12px; }
+    .info-item .lbl { font-size: 11px; color: #888; }
+    .info-item .val { font-size: 13px; font-weight: bold; color: #333; margin-top: 2px; }
+    .quote-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    .quote-table th { background: #f8f9fa; padding: 9px 12px; text-align: left; font-size: 12px; color: #555; border-bottom: 2px solid #dee2e6; }
+    .quote-table td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+    .quote-table .price { font-weight: bold; color: #e63946; font-size: 15px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 6px; }
+    .badge-corp     { background: #d0e8ff; color: #1565c0; }
+    .badge-biz      { background: #d4edda; color: #155724; }
+    .badge-personal { background: #fff3cd; color: #856404; }
+    .quote-footer { text-align: center; font-size: 12px; color: #888; border-top: 1px dashed #ddd; padding-top: 12px; margin-top: 6px; }
+    .car-no { text-align: right; font-size: 11px; color: #aaa; margin-bottom: 8px; }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>✅ 블로그 글 생성 완료!</h1>
+<div class="wrap">
+  <h1>✅ 포스팅 + 견적서 생성 완료</h1>
+  <p class="subtitle" th:text="${dto.year + '년 ' + dto.brand + ' ' + dto.carModel + ' ' + dto.trim}"></p>
 
-  <div class="result-box" id="resultText" th:text="${result}"></div>
-  <div class="char-count" id="charCount"></div>
+  <!-- 블로그 포스팅 본문 -->
+  <div class="card">
+    <h2>📝 블로그 포스팅 본문</h2>
+    <textarea class="result-box" id="blog_result" th:text="${result}"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-copy"  onclick="copyText()">📋 본문 복사</button>
+      <button class="btn btn-print" onclick="printQuote()">🖨️ 견적서 인쇄</button>
+      <a th:href="@{/}"><button type="button" class="btn btn-back">← 다시 입력</button></a>
+    </div>
+  </div>
 
-  <div class="btn-wrap">
-    <button class="btn btn-copy" onclick="copyText()">📋 복사하기</button>
-    <button class="btn btn-back" onclick="location.href='/'">🔙 다시 작성</button>
+  <!-- 견적서 -->
+  <div class="card" id="quote_section">
+    <h2>📄 견적서 (포스팅 첨부용)</h2>
+    <div class="quote-title">중고 장기렌트 견적서</div>
+    <div class="quote-sub">렌트제이카 | blog.naver.com/rentjcar</div>
+
+    <div class="quote-car">
+      <div class="car-name" th:text="${dto.year + '년 ' + dto.brand + ' ' + dto.carModel + ' ' + dto.trim}"></div>
+      <div class="car-detail">
+        <span th:text="${dto.regDate}"></span> &nbsp;|&nbsp;
+        <span th:text="${dto.mileage}"></span>KM &nbsp;|&nbsp;
+        <span th:text="${dto.accident}"></span> &nbsp;|&nbsp;
+        <span th:text="${dto.color}"></span>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="lbl">신차 출고가</div>
+        <div class="val" th:text="${dto.newPrice + '원'}"></div>
+      </div>
+      <div class="info-item">
+        <div class="lbl">추가 옵션</div>
+        <div class="val" th:text="${dto.extraOptions}"></div>
+      </div>
+      <div class="info-item">
+        <div class="lbl">계약기간</div>
+        <div class="val" th:text="${dto.contractPeriod}"></div>
+      </div>
+      <div class="info-item">
+        <div class="lbl">담보(보증금)</div>
+        <div class="val" th:text="${dto.deposit}"></div>
+      </div>
+      <div class="info-item" style="grid-column: span 2;">
+        <div class="lbl">계약 종료 후 인수가 (잔존가치)</div>
+        <div class="val" th:text="${dto.residualValue + '원'}"></div>
+      </div>
+    </div>
+
+    <table class="quote-table">
+      <tr>
+        <th>고객 유형</th>
+        <th>약정 주행거리</th>
+        <th>월 렌탈료</th>
+      </tr>
+      <tr th:if="${dto.priceCorpRate != null and !dto.priceCorpRate.isEmpty()}">
+        <td>법인 <span class="badge badge-corp">법인</span></td>
+        <td th:text="${dto.kmCorp}"></td>
+        <td class="price" th:text="${dto.priceCorpRate + '원'}"></td>
+      </tr>
+      <tr th:if="${dto.priceBizRate != null and !dto.priceBizRate.isEmpty()}">
+        <td>개인사업자 <span class="badge badge-biz">사업자</span></td>
+        <td th:text="${dto.kmBiz}"></td>
+        <td class="price" th:text="${dto.priceBizRate + '원'}"></td>
+      </tr>
+      <tr th:if="${dto.pricePersonal != null and !dto.pricePersonal.isEmpty()}">
+        <td>개인 <span class="badge badge-personal">개인</span></td>
+        <td th:text="${dto.kmPersonal}"></td>
+        <td class="price" th:text="${dto.pricePersonal + '원'}"></td>
+      </tr>
+    </table>
+
+    <div class="car-no" th:if="${dto.carNo != null and !dto.carNo.isEmpty()}" th:text="'관리번호: ' + ${dto.carNo}"></div>
+
+    <div class="quote-footer">
+      본 견적은 렌탈사 심사 및 시장 상황에 따라 변동될 수 있습니다.<br>
+      📞 자세한 상담은 렌트제이카로 문의해 주세요 | blog.naver.com/rentjcar
+    </div>
   </div>
 </div>
 
-<div class="toast" id="toast">클립보드에 복사되었습니다! 👍</div>
-
 <script>
-  // 글자수 표시
-  var text = document.getElementById('resultText').innerText;
-  document.getElementById('charCount').innerText = '총 ' + text.length + '자';
-
-  // 복사 기능
   function copyText() {
-      var text = document.getElementById('resultText').innerText;
-      navigator.clipboard.writeText(text).then(function() {
-          var toast = document.getElementById('toast');
-          toast.style.display = 'block';
-          setTimeout(function() { toast.style.display = 'none'; }, 2000);
-      });
+    var el = document.getElementById('blog_result');
+    el.select();
+    el.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    alert('포스팅 본문이 복사되었습니다!\n네이버 블로그 에디터에 붙여넣기 하세요.');
+  }
+  function printQuote() {
+    var section = document.getElementById('quote_section').innerHTML;
+    var w = window.open('', '', 'width=700,height=900');
+    w.document.write('<html><head><title>견적서</title><style>');
+    w.document.write('body{font-family:Malgun Gothic,sans-serif;padding:30px;}');
+    w.document.write('.quote-title{font-size:20px;font-weight:bold;text-align:center;margin-bottom:6px;}');
+    w.document.write('.quote-sub{text-align:center;color:#666;font-size:12px;margin-bottom:18px;}');
+    w.document.write('.quote-car{background:#1a1a2e;color:#fff;border-radius:8px;padding:14px 20px;margin-bottom:14px;}');
+    w.document.write('.car-name{font-size:17px;font-weight:bold;}');
+    w.document.write('.car-detail{font-size:12px;color:#ccc;margin-top:5px;}');
+    w.document.write('.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}');
+    w.document.write('.info-item{background:#f8f9fa;border-radius:6px;padding:9px 12px;}');
+    w.document.write('.lbl{font-size:11px;color:#888;}.val{font-size:13px;font-weight:bold;color:#333;margin-top:2px;}');
+    w.document.write('table{width:100%;border-collapse:collapse;}');
+    w.document.write('th{background:#f8f9fa;padding:9px 12px;text-align:left;font-size:12px;border-bottom:2px solid #dee2e6;}');
+    w.document.write('td{padding:9px 12px;font-size:13px;border-bottom:1px solid #f0f0f0;}');
+    w.document.write('.price{font-weight:bold;color:#e63946;font-size:15px;}');
+    w.document.write('.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;margin-left:6px;}');
+    w.document.write('.badge-corp{background:#d0e8ff;color:#1565c0;}.badge-biz{background:#d4edda;color:#155724;}.badge-personal{background:#fff3cd;color:#856404;}');
+    w.document.write('.quote-footer{text-align:center;font-size:12px;color:#888;border-top:1px dashed #ddd;padding-top:12px;margin-top:6px;}');
+    w.document.write('</style></head><body>');
+    w.document.write(section);
+    w.document.write('</body></html>');
+    w.document.close();
+    w.focus();
+    w.print();
   }
 </script>
 </body>

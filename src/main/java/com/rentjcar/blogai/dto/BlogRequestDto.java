@@ -1,33 +1,40 @@
 package com.rentjcar.blogai.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BlogRequestDto {
 
-    private String carModel;       // 차량 모델명
-    private String monthlyFee;     // 월 렌탈료
-    private String contractPeriod; // 계약 기간
-    private String deposit;        // 보증금
-    private String mileage;        // 약정 주행거리
-    private String insuranceType;  // 보험 종류
-    private String extraOptions;   // 추가 옵션 (선택)
+    // 차량 기본 정보
+    private String carNo;           // 관리번호 (예: 191호6313)
+    private String brand;           // 제조사
+    private String carModel;        // 모델명
+    private String trim;            // 트림/엔진
+    private String year;            // 연식
+    private String regDate;         // 등록월 (예: 23년02월식)
+    private String mileage;         // 주행거리
+    private String accident;        // 사고유무
+    private String color;           // 색상
+    private String extraOptions;    // 추가 옵션
+    private String newPrice;        // 신차 출고가
 
-    public String getCarModel() { return carModel; }
-    public void setCarModel(String carModel) { this.carModel = carModel; }
+    // 렌탈 조건
+    private String deposit;         // 담보/보증금
+    private String contractPeriod;  // 계약기간
+    private String residualValue;   // 인수 잔존가치(인수가)
 
-    public String getMonthlyFee() { return monthlyFee; }
-    public void setMonthlyFee(String monthlyFee) { this.monthlyFee = monthlyFee; }
+    // 고객 유형별 월렌탈료
+    private String priceCorpRate;   // 법인 월렌탈료
+    private String kmCorp;          // 법인 약정 KM
+    private String priceBizRate;    // 개인사업자 월렌탈료
+    private String kmBiz;           // 개인사업자 약정 KM
+    private String pricePersonal;   // 개인 월렌탈료
+    private String kmPersonal;      // 개인 약정 KM
 
-    public String getContractPeriod() { return contractPeriod; }
-    public void setContractPeriod(String contractPeriod) { this.contractPeriod = contractPeriod; }
-
-    public String getDeposit() { return deposit; }
-    public void setDeposit(String deposit) { this.deposit = deposit; }
-
-    public String getMileage() { return mileage; }
-    public void setMileage(String mileage) { this.mileage = mileage; }
-
-    public String getInsuranceType() { return insuranceType; }
-    public void setInsuranceType(String insuranceType) { this.insuranceType = insuranceType; }
-
-    public String getExtraOptions() { return extraOptions; }
-    public void setExtraOptions(String extraOptions) { this.extraOptions = extraOptions; }
+    // 포스팅 설정
+    private String tone;            // 톤앤매너
+    private String highlight;       // 강조 포인트
+    private String memo;            // 추가 메모
 }

@@ -2,172 +2,210 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>렌트제이카 블로그 포스팅 생성기</title>
+    <title>렌트제이카 AI 블로그 생성기</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Noto Sans KR', sans-serif; background: #f5f5f5; padding: 30px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; margin-bottom: 20px; font-size: 22px; }
-
-        /* 한도 표시 박스 */
-        .quota-box { background: #f0f7ff; border: 1px solid #b3d4ff; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
-        .quota-box .label { font-size: 13px; color: #555; }
-        .quota-box .count { font-size: 15px; font-weight: bold; color: #2d6df6; }
-        .quota-bar-wrap { margin-top: 8px; background: #dde8ff; border-radius: 10px; height: 8px; }
-        .quota-bar { height: 8px; border-radius: 10px; background: #2d6df6; transition: width 0.3s; }
-        .quota-warn { color: #e67e00; }
-        .quota-danger { color: #e00; }
-
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; color: #555; font-size: 14px; }
-        input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        textarea { height: 80px; resize: vertical; }
-        .btn { width: 100%; padding: 14px; background: #2d6df6; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn:hover { background: #1a56d6; }
-        .btn:disabled { background: #aaa; cursor: not-allowed; }
-        .required { color: red; margin-left: 3px; }
-
-        /* 로딩 */
-        .loading { display: none; text-align: center; padding: 16px; color: #2d6df6; font-weight: bold; font-size: 15px; }
-        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #b3d4ff; border-top: 3px solid #2d6df6; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        body { font-family: 'Malgun Gothic', sans-serif; background: #f0f2f5; padding: 20px; }
+        .wrap { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; color: #1a1a2e; padding: 20px 0 5px; font-size: 22px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 13px; }
+        .error-box { background: #fff0f0; border: 1px solid #f5c6c6; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #c0392b; font-size: 14px; }
+        .card { background: #fff; border-radius: 10px; padding: 22px 26px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .card h2 { font-size: 15px; color: #333; border-left: 4px solid #e63946; padding-left: 10px; margin-bottom: 16px; }
+        .row { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 180px; }
+        .form-group label { display: block; font-size: 12px; color: #555; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit;
+        }
+        .form-group textarea { resize: vertical; height: 70px; }
+        .req { color: #e63946; }
+        .price-section { background: #f8f9fa; border-radius: 8px; padding: 16px; margin-top: 6px; }
+        .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .price-row label { font-size: 12px; font-weight: bold; color: #444; width: 90px; flex-shrink: 0; }
+        .price-row input { flex: 1; min-width: 130px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+        .price-row select { width: 130px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; }
+        .btn-submit { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #e63946, #c1121f); color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { opacity: 0.9; }
+        .tip { font-size: 11px; color: #888; margin-top: 4px; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🚗 렌트제이카 블로그 포스팅 생성기</h1>
+<div class="wrap">
+    <h1>🚗 렌트제이카 AI 블로그 포스팅 생성기</h1>
+    <p class="subtitle">차량 정보를 입력하면 블로그 포스팅 + 견적서를 자동으로 생성합니다</p>
 
-    <!-- 무료 한도 표시 -->
-    <div class="quota-box">
-        <div style="flex:1">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="label">📊 오늘 남은 무료 한도</span>
-                <span class="count" id="quotaText">로딩 중...</span>
+    <div th:if="${errorMsg}" class="error-box" th:text="${errorMsg}"></div>
+
+    <form th:action="@{/generate}" th:object="${blogRequest}" method="post">
+
+        <!-- 차량 기본 정보 -->
+        <div class="card">
+            <h2>📋 차량 기본 정보</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>관리번호</label>
+                    <input type="text" th:field="*{carNo}" placeholder="예: 191호6313">
+                </div>
+                <div class="form-group">
+                    <label>제조사 <span class="req">*</span></label>
+                    <select th:field="*{brand}" required>
+                        <option value="">-- 선택 --</option>
+                        <option value="제네시스">제네시스</option>
+                        <option value="현대">현대</option>
+                        <option value="기아">기아</option>
+                        <option value="쉐보레">쉐보레</option>
+                        <option value="르노코리아">르노코리아</option>
+                        <option value="KG모빌리티">KG모빌리티</option>
+                        <option value="BMW">BMW</option>
+                        <option value="벤츠">벤츠</option>
+                        <option value="아우디">아우디</option>
+                        <option value="볼보">볼보</option>
+                        <option value="렉서스">렉서스</option>
+                        <option value="테슬라">테슬라</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>모델명 <span class="req">*</span></label>
+                    <input type="text" th:field="*{carModel}" placeholder="예: G80" required>
+                </div>
+                <div class="form-group">
+                    <label>트림/엔진 <span class="req">*</span></label>
+                    <input type="text" th:field="*{trim}" placeholder="예: 2.5T 가솔린 AWD" required>
+                </div>
             </div>
-            <div class="quota-bar-wrap" style="margin-top:8px;">
-                <div class="quota-bar" id="quotaBar" style="width:0%"></div>
+            <div class="row">
+                <div class="form-group">
+                    <label>연식 <span class="req">*</span></label>
+                    <input type="text" th:field="*{year}" placeholder="예: 2023" required>
+                </div>
+                <div class="form-group">
+                    <label>등록월</label>
+                    <input type="text" th:field="*{regDate}" placeholder="예: 23년02월식">
+                </div>
+                <div class="form-group">
+                    <label>주행거리 (KM) <span class="req">*</span></label>
+                    <input type="text" th:field="*{mileage}" placeholder="예: 81,704" required>
+                </div>
+                <div class="form-group">
+                    <label>사고유무</label>
+                    <select th:field="*{accident}">
+                        <option value="무사고">무사고</option>
+                        <option value="단순교환">단순교환</option>
+                        <option value="수리이력있음">수리이력있음</option>
+                    </select>
+                </div>
             </div>
-            <div style="font-size:11px; color:#888; margin-top:5px;">하루 최대 250회 / 매일 자정 초기화</div>
-        </div>
-    </div>
-
-    <!-- 에러 메시지 -->
-    <div th:if="${errorMsg}" style="background:#fff0f0; border:1px solid #ffb3b3; border-radius:8px; padding:14px 18px; margin-bottom:20px; color:#c00; font-size:14px; font-weight:bold;" th:text="${errorMsg}"></div>
-
-    <form th:action="@{/generate}" th:object="${blogRequest}" method="post" id="blogForm">
-
-        <div class="form-group">
-            <label>차량 모델 <span class="required">*</span></label>
-            <input type="text" th:field="*{carModel}" placeholder="예) 현대 아반떼 CN7 2024">
-        </div>
-
-        <div class="form-group">
-            <label>월 렌탈료 <span class="required">*</span></label>
-            <input type="text" th:field="*{monthlyFee}" placeholder="예) 350,000">
+            <div class="row">
+                <div class="form-group">
+                    <label>색상</label>
+                    <input type="text" th:field="*{color}" placeholder="예: 비크 블랙">
+                </div>
+                <div class="form-group">
+                    <label>추가 옵션</label>
+                    <input type="text" th:field="*{extraOptions}" placeholder="예: 파퓰러 패키지, 빌트인 캠 패키지">
+                </div>
+                <div class="form-group">
+                    <label>신차 출고가 (원)</label>
+                    <input type="text" th:field="*{newPrice}" placeholder="예: 63,720,000">
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>계약 기간 <span class="required">*</span></label>
-            <select th:field="*{contractPeriod}">
-                <option value="">선택해주세요</option>
-                <option value="12개월">12개월</option>
-                <option value="24개월">24개월</option>
-                <option value="36개월">36개월</option>
-                <option value="48개월">48개월</option>
-                <option value="60개월">60개월</option>
-            </select>
+        <!-- 렌탈 조건 -->
+        <div class="card">
+            <h2>💰 렌탈 조건</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>담보(보증금)</label>
+                    <select th:field="*{deposit}">
+                        <option value="무보증">무보증</option>
+                        <option value="500만원">500만원</option>
+                        <option value="1,000만원">1,000만원</option>
+                        <option value="협의">협의</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>계약기간 <span class="req">*</span></label>
+                    <select th:field="*{contractPeriod}" required>
+                        <option value="12개월">12개월</option>
+                        <option value="24개월">24개월</option>
+                        <option value="36개월">36개월</option>
+                        <option value="48개월">48개월</option>
+                        <option value="60개월">60개월</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>인수 잔존가치 (원)</label>
+                    <input type="text" th:field="*{residualValue}" placeholder="예: 32,982,000">
+                    <p class="tip">계약 종료 후 인수 가격</p>
+                </div>
+            </div>
+
+            <div class="price-section">
+                <p style="font-size:13px; font-weight:bold; color:#333; margin-bottom:12px;">📌 고객 유형별 월 렌탈료</p>
+                <div class="price-row">
+                    <label>법인</label>
+                    <input type="text" th:field="*{priceCorpRate}" placeholder="월렌탈료 (원)">
+                    <select th:field="*{kmCorp}">
+                        <option value="연간 1만KM">연간 1만KM</option>
+                        <option value="연간 2만KM">연간 2만KM</option>
+                        <option value="연간 3만KM">연간 3만KM</option>
+                        <option value="무제한">무제한</option>
+                    </select>
+                </div>
+                <div class="price-row">
+                    <label>개인사업자</label>
+                    <input type="text" th:field="*{priceBizRate}" placeholder="월렌탈료 (원)">
+                    <select th:field="*{kmBiz}">
+                        <option value="연간 1만KM">연간 1만KM</option>
+                        <option value="연간 2만KM">연간 2만KM</option>
+                        <option value="연간 3만KM">연간 3만KM</option>
+                        <option value="무제한">무제한</option>
+                    </select>
+                </div>
+                <div class="price-row">
+                    <label>개인</label>
+                    <input type="text" th:field="*{pricePersonal}" placeholder="월렌탈료 (원)">
+                    <select th:field="*{kmPersonal}">
+                        <option value="연간 1만KM">연간 1만KM</option>
+                        <option value="연간 2만KM">연간 2만KM</option>
+                        <option value="연간 3만KM">연간 3만KM</option>
+                        <option value="무제한">무제한</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>보증금 <span class="required">*</span></label>
-            <input type="text" th:field="*{deposit}" placeholder="예) 0 또는 500,000">
+        <!-- 포스팅 설정 -->
+        <div class="card">
+            <h2>✍️ 포스팅 설정</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>포스팅 톤</label>
+                    <select th:field="*{tone}">
+                        <option value="친근한">친근하고 대화체</option>
+                        <option value="전문적">전문적이고 신뢰감</option>
+                        <option value="캐주얼">캐주얼하고 감성적</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>강조 포인트</label>
+                    <select th:field="*{highlight}">
+                        <option value="가성비">가성비 (신차 대비 저렴한 비용)</option>
+                        <option value="프리미엄">프리미엄 (고급 옵션, 브랜드)</option>
+                        <option value="실용성">실용성 (주행거리, 유지비)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>추가 메모 (선택)</label>
+                    <textarea th:field="*{memo}" placeholder="예: 이번 달 특가, 즉시 출고 가능 등"></textarea>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>약정 주행거리 <span class="required">*</span></label>
-            <select th:field="*{mileage}">
-                <option value="">선택해주세요</option>
-                <option value="월 1,000km">월 1,000km</option>
-                <option value="월 1,500km">월 1,500km</option>
-                <option value="월 2,000km">월 2,000km</option>
-                <option value="월 3,000km">월 3,000km</option>
-                <option value="무제한">무제한</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>보험 종류 <span class="required">*</span></label>
-            <select th:field="*{insuranceType}">
-                <option value="">선택해주세요</option>
-                <option value="일반보험">일반보험</option>
-                <option value="완전자차">완전자차</option>
-                <option value="자차+대물">자차+대물</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>추가 옵션 (선택)</label>
-            <textarea th:field="*{extraOptions}" placeholder="예) 하이패스 포함, 블랙박스 포함 등"></textarea>
-        </div>
-
-        <div class="loading" id="loading">
-            <span class="spinner"></span> 블로그 글 생성 중... 잠시만 기다려주세요!
-        </div>
-
-        <button type="submit" class="btn" id="submitBtn">✍️ 블로그 글 생성하기</button>
+        <button type="submit" class="btn-submit">🤖 AI 블로그 포스팅 + 견적서 생성하기</button>
     </form>
 </div>
-
-<script>
-    // 사용 횟수 로컬 저장 (날짜 기준 초기화)
-    function getQuotaData() {
-        var today = new Date().toISOString().slice(0, 10);
-        var saved = localStorage.getItem('quotaData');
-        if (saved) {
-            var data = JSON.parse(saved);
-            if (data.date === today) return data;
-        }
-        var fresh = { date: today, used: 0 };
-        localStorage.setItem('quotaData', JSON.stringify(fresh));
-        return fresh;
-    }
-
-    function updateQuotaDisplay() {
-        var data = getQuotaData();
-        var remaining = 250 - data.used;
-        var pct = (remaining / 250) * 100;
-        var el = document.getElementById('quotaText');
-        var bar = document.getElementById('quotaBar');
-
-                        el.textContent = remaining + ' / 250 회 남음';
-        bar.style.width = pct + '%';
-
-        if (remaining <= 0) {
-            el.className = 'count quota-danger';
-            el.textContent = '오늘 한도 소진 ❌';
-            bar.style.background = '#e00';
-            document.getElementById('submitBtn').disabled = true;
-        } else if (remaining <= 20) {
-            el.className = 'count quota-warn';
-            bar.style.background = '#e67e00';
-        } else {
-            el.className = 'count';
-            bar.style.background = '#2d6df6';
-        }
-    }
-
-    // 폼 제출 시 카운트 증가 + 로딩 표시
-    document.getElementById('blogForm').addEventListener('submit', function() {
-        var data = getQuotaData();
-        data.used += 1;
-        localStorage.setItem('quotaData', JSON.stringify(data));
-
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('submitBtn').disabled = true;
-    });
-
-    updateQuotaDisplay();
-</script>
 </body>
 </html>

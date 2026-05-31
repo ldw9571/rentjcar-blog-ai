@@ -37,4 +37,7 @@ public class BlogRequestDto {
     private String tone;            // 톤앤매너
     private String highlight;       // 강조 포인트
     private String memo;            // 추가 메모
+
+    // 텍스트 붙여넣기 모드용
+    private String rawText;
 }

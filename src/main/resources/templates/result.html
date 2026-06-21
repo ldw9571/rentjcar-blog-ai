@@ -129,7 +129,7 @@
     <h2>📄 견적서 (포스팅 첨부용)</h2>
     <div id="quote_capture">
       <div class="quote-title">중고 장기렌트 견적서</div>
-      <div class="quote-sub">렌트제이카 | blog.naver.com/rentjcar</div>
+      <div class="quote-sub">렌트제이카 | blog.naver.com/rentcarinfo</div>
       <div class="quote-car">
         <div class="car-name" th:text="${dto.year + '년 ' + dto.brand + ' ' + dto.carModel + ' ' + dto.trim}"></div>
         <div class="car-detail">
@@ -165,7 +165,7 @@
         </tr>
       </table>
       <div class="car-no" th:if="${dto.carNo != null and !dto.carNo.isEmpty()}" th:text="'관리번호: ' + ${dto.carNo}"></div>
-      <div class="quote-footer">본 견적은 렌탈사 심사 및 시장 상황에 따라 변동될 수 있습니다.<br>📞 자세한 상담은 렌트제이카로 문의해 주세요 | blog.naver.com/rentjcar</div>
+      <div class="quote-footer">본 견적은 렌탈사 심사 및 시장 상황에 따라 변동될 수 있습니다.<br>📞 자세한 상담은 렌트제이카로 문의해 주세요 | blog.naver.com/rentcarinfo</div>
     </div>
   </div>
 
@@ -176,7 +176,7 @@
     <h2>📄 견적서 (AI 파싱 결과)</h2>
     <div id="quote_capture">
       <div class="quote-title">중고 장기렌트 견적서</div>
-      <div class="quote-sub">렌트제이카 | blog.naver.com/rentjcar</div>
+      <div class="quote-sub">렌트제이카 | blog.naver.com/rentcarinfo</div>
       <div class="quote-car">
         <div class="car-name" th:text="${parsedDto.year + '년 ' + parsedDto.brand + ' ' + parsedDto.carModel + ' ' + parsedDto.trim}"></div>
         <div class="car-detail">
@@ -212,7 +212,7 @@
         </tr>
       </table>
       <div class="car-no" th:if="${parsedDto.carNo != null and !parsedDto.carNo.isEmpty()}" th:text="'관리번호: ' + ${parsedDto.carNo}"></div>
-      <div class="quote-footer">본 견적은 렌탈사 심사 및 시장 상황에 따라 변동될 수 있습니다.<br>📞 자세한 상담은 렌트제이카로 문의해 주세요 | blog.naver.com/rentjcar</div>
+      <div class="quote-footer">본 견적은 렌탈사 심사 및 시장 상황에 따라 변동될 수 있습니다.<br>📞 자세한 상담은 렌트제이카로 문의해 주세요 | blog.naver.com/rentcarinfo</div>
     </div>
   </div>
 

@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>맛집 블로그 도우미 - 렌트제이카</title>
+    <title>콘텐츠 블로그 도우미 - 렌트제이카</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Malgun Gothic', sans-serif; background: #f0f2f5; padding: 20px; }
@@ -53,6 +53,7 @@
         .result-card { background: #fff; border-radius: 10px; padding: 24px 28px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
         .result-card h2 { font-size: 15px; color: #333; border-left: 4px solid #34a853; padding-left: 10px; margin-bottom: 16px; }
         .result-text { white-space: pre-wrap; font-size: 14px; line-height: 1.9; color: #333; }
+        .post-render { white-space: pre-wrap; font-size: 14px; line-height: 1.9; color: #333; background: #fafafa; border: 1px solid #ddd; border-radius: 8px; padding: 16px; max-height: 600px; overflow-y: auto; }
         .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
         .btn { padding: 10px 22px; border: none; border-radius: 7px; font-size: 13px; cursor: pointer; font-family: inherit; }
         .btn-copy  { background: #457b9d; color: #fff; }
@@ -99,12 +100,12 @@
 </div>
 
 <div class="wrap">
-    <h1>🍽️ 맛집 블로그 도우미</h1>
-    <p class="subtitle">SEO 분석 · 포스팅 가이드라인 + 완성본 생성</p>
+    <h1>🍽️✈️ 콘텐츠 블로그 도우미</h1>
+    <p class="subtitle">SEO 분석 · 포스팅 가이드라인 + 완성본 생성 (맛집·여행·숙소·체험·일상)</p>
 
     <div class="nav-link">
         <a th:href="@{/}">🚗 중고차 블로그 생성기</a>
-        <a th:href="@{/seo}">🍽️ 맛집 블로그 도우미</a>
+        <a th:href="@{/seo}">🍽️ 콘텐츠 블로그 도우미</a>
     </div>
 
     <div th:if="${errorMsg}" class="error-box" th:text="${errorMsg}"></div>
@@ -147,6 +148,15 @@
                     <label>블로그 본문 *</label>
                     <textarea name="content" placeholder="블로그 본문을 붙여넣기 하세요..." th:text="${content}" required></textarea>
                 </div>
+                <div class="form-group">
+                    <label>분석 정확도 (여러 번 분석 후 최고 점수 채택)</label>
+                    <select name="rounds">
+                        <option value="1" th:selected="${rounds == null or rounds == 1}">1회 분석 (기본, 빠름)</option>
+                        <option value="3" th:selected="${rounds == 3}">3회 분석 후 최고점 채택 (추천)</option>
+                        <option value="5" th:selected="${rounds == 5}">5회 분석 후 최고점 채택 (가장 꼼꼼함)</option>
+                    </select>
+                    <p class="tip">⚠️ 선택한 횟수만큼 오늘의 무료 횟수를 소모해요. (예: 3회 선택 시 3회 차감)</p>
+                </div>
                 <button type="submit" class="btn-submit">🔍 SEO 분석 시작하기</button>
             </form>
         </div>
@@ -163,8 +173,29 @@
     <!-- ─── 탭2: 가이드라인 + 완성본 ─── -->
     <div id="tab-guide" class="tab-panel">
         <div class="card">
-            <h2>📋 맛집 포스팅 가이드 + 완성본 생성</h2>
+            <h2>📋 포스팅 가이드 + 완성본 생성</h2>
             <form id="form-guide" th:action="@{/seo/guide}" method="post">
+
+                <div class="form-group">
+                    <label>포스팅 유형 *</label>
+                    <select name="postType" id="postType" onchange="onPostTypeChange()">
+                        <option value="맛집" th:selected="${postType == null or postType == '맛집'}">🍽️ 맛집/카페</option>
+                        <option value="여행" th:selected="${postType == '여행'}">✈️ 여행/명소</option>
+                        <option value="숙소" th:selected="${postType == '숙소'}">🏨 숙소/호텔</option>
+                        <option value="체험" th:selected="${postType == '체험'}">🎨 체험/클래스</option>
+                        <option value="일상" th:selected="${postType == '일상'}">📝 일상/기타</option>
+                        <option value="기타" th:selected="${postType == '기타'}">✏️ 기타 (직접 입력)</option>
+                    </select>
+                    <p class="tip">유형을 바꾸면 아래 항목 이름과 카테고리 선택지가 자동으로 바뀌어요</p>
+                </div>
+
+                <div class="form-group" id="postTypeOtherWrap" style="display:none;">
+                    <label>유형 직접 입력 *</label>
+                    <input type="text" name="postTypeOther" id="postTypeOther"
+                           placeholder="예: 웨딩스냅, 반려동물미용, 인테리어, 자동차정비 등"
+                           th:value="${postTypeOther}">
+                    <p class="tip">여기에 입력한 유형에 맞춰 AI가 페르소나와 글 구성을 자동으로 맞춰요</p>
+                </div>
 
                 <div class="row2">
                     <div class="form-group">
@@ -173,8 +204,8 @@
                                th:value="${guideKeyword}" required>
                     </div>
                     <div class="form-group">
-                        <label>식당명 *</label>
-                        <input type="text" name="restaurantName" placeholder="예: 파스타 드 서울"
+                        <label id="label-name">식당명 *</label>
+                        <input type="text" name="restaurantName" id="input-name" placeholder="예: 파스타 드 서울"
                                th:value="${restaurantName}" required>
                     </div>
                 </div>
@@ -192,39 +223,21 @@
                     </div>
                 </div>
 
-                <div class="row2">
-                    <div class="form-group">
-                        <label>카테고리</label>
-                        <select name="category">
-                            <option value="" th:selected="${category == null or category == ''}">-- 선택 --</option>
-                            <option value="한식"       th:selected="${category == '한식'}">한식</option>
-                            <option value="일식"       th:selected="${category == '일식'}">일식</option>
-                            <option value="중식"       th:selected="${category == '중식'}">중식</option>
-                            <option value="양식"       th:selected="${category == '양식'}">양식</option>
-                            <option value="이탈리안"   th:selected="${category == '이탈리안'}">이탈리안</option>
-                            <option value="카페/디저트" th:selected="${category == '카페/디저트'}">카페/디저트</option>
-                            <option value="고기/구이"  th:selected="${category == '고기/구이'}">고기/구이</option>
-                            <option value="해산물"     th:selected="${category == '해산물'}">해산물</option>
-                            <option value="분식"       th:selected="${category == '분식'}">분식</option>
-                            <option value="기타"       th:selected="${category == '기타'}">기타</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>영업시간</label>
-                        <input type="text" name="hours" placeholder="예: 11:30~22:00 (브레이크타임 15~17시)"
-                               th:value="${hours}">
-                    </div>
+                <div class="form-group">
+                    <label id="label-hours">영업시간</label>
+                    <input type="text" name="hours" placeholder="예: 11:30~22:00 (브레이크타임 15~17시)"
+                           th:value="${hours}">
                 </div>
 
                 <div class="form-group">
-                    <label>대표 메뉴 및 가격</label>
-                    <input type="text" name="menu" placeholder="예: 까르보나라 15,000원, 봉골레 14,000원, 티라미수 8,000원"
+                    <label id="label-menu">대표 메뉴 및 가격</label>
+                    <input type="text" name="menu" id="input-menu" placeholder="예: 까르보나라 15,000원, 봉골레 14,000원, 티라미수 8,000원"
                            th:value="${menu}">
-                    <p class="tip">메뉴와 가격을 함께 입력하면 더 자연스러운 포스팅이 생성돼요</p>
+                    <p class="tip">메뉴/상품과 가격을 함께 입력하면 더 자연스러운 포스팅이 생성돼요</p>
                 </div>
 
                 <div class="form-group">
-                    <label>오늘 먹은 메뉴 + 솔직한 후기 ⭐</label>
+                    <label>오늘 경험한 내용 + 솔직한 후기 ⭐</label>
                     <textarea name="myReview" rows="4"
                               style="height:120px;"
                               placeholder="예: 까르보나라 시켰는데 크림이 엄청 진하고 양도 많았어요. 면이 살짝 불어있었지만 맛은 괜찮았고, 같이 간 친구는 봉골레 먹었는데 조개가 신선하다고 했어요. 디저트로 티라미수도 먹었는데 달달해서 마무리로 딱이었어요."
@@ -238,7 +251,7 @@
 
         <!-- 가이드라인 결과 -->
         <div class="result-card" th:if="${guideResult != null}">
-            <h2>📋 포스팅 가이드라인</h2>
+            <h2>📋 포스팅 가이드라인 (추천 키워드 포함)</h2>
             <div class="result-text" id="guideResultText" th:text="${guideResult}"></div>
             <div class="btn-row">
                 <button class="btn btn-copy" onclick="copyText('guideResultText')">📋 가이드 복사</button>
@@ -246,15 +259,16 @@
         </div>
 
         <!-- 포스팅 완성본 -->
-        <div class="result-card" th:if="${postResult != null}">
+        <div class="result-card" th:if="${postResultHtml != null}">
             <h2>✍️ 블로그 포스팅 완성본</h2>
-            <textarea id="postResultText"
-                      style="width:100%;height:500px;padding:14px;border:1px solid #ddd;border-radius:8px;font-size:14px;line-height:1.9;resize:vertical;font-family:inherit;"
-                      th:text="${postResult}"></textarea>
+            <div class="post-render" id="postResultHtml" th:utext="${postResultHtml}"></div>
+            <textarea id="postResultPlain" style="display:none;" th:text="${postResultPlain}"></textarea>
             <div class="btn-row">
-                <button class="btn btn-green" onclick="copyPostText()">📋 포스팅 복사</button>
+                <button class="btn btn-green" onclick="copyRichPost()">📋 서식 포함 복사 (추천)</button>
+                <button class="btn btn-copy" onclick="copyPlainPost()">📋 일반 텍스트 복사</button>
                 <a th:href="@{/seo}"><button type="button" class="btn btn-reset">🔄 다시 생성하기</button></a>
             </div>
+            <p class="tip">💡 "서식 포함 복사"를 쓰면 소제목이 굵은 글씨(19px)로 네이버 에디터에 그대로 붙여넣기 돼요. 붙여넣은 후 혹시 서식이 깨지면 "일반 텍스트 복사"를 이용해주세요.</p>
         </div>
     </div>
 
@@ -271,12 +285,44 @@
       '최종 업로드 버전을 다듬고 있어요...', '거의 다 됐어요! 😊'
     ];
     var MSG_GUIDE = [
-      '식당 정보를 분석하고 있어요...', '추천 제목을 만들고 있어요...',
-      '포스팅 가이드를 작성하고 있어요...', '도입부를 쓰고 있어요...',
-      '메뉴 소개 섹션을 작성하고 있어요...', '맛 & 분위기 후기를 쓰고 있어요...',
-      '마무리 문단을 다듬고 있어요...', '거의 다 됐어요! 😊'
+      '정보를 분석하고 있어요...', '추천 제목을 만들고 있어요...',
+      '추천 키워드를 뽑고 있어요...', '포스팅 가이드를 작성하고 있어요...',
+      '도입부를 쓰고 있어요...', '핵심 소개 섹션을 작성하고 있어요...',
+      '경험 & 분위기 후기를 쓰고 있어요...', '마무리 문단을 다듬고 있어요...'
     ];
     var currentMessages = MSG_ANALYZE;
+
+    // 포스팅 유형별 라벨/플레이스홀더
+    var TYPE_LABELS = {
+      '맛집': { name:'식당명 *',        namePh:'예: 파스타 드 서울',       menu:'대표 메뉴 및 가격',    menuPh:'예: 까르보나라 15,000원, 봉골레 14,000원', hours:'영업시간' },
+      '여행': { name:'장소/명소명 *',    namePh:'예: 남산서울타워',         menu:'대표 코스/즐길거리',   menuPh:'예: 전망대 입장 16,000원, 케이블카 왕복 15,000원', hours:'운영시간/이용시간' },
+      '숙소': { name:'숙소명 *',        namePh:'예: 오션뷰펜션',           menu:'객실/요금',           menuPh:'예: 오션뷰룸 150,000원, 스탠다드룸 100,000원', hours:'체크인/체크아웃' },
+      '체험': { name:'업체/클래스명 *',  namePh:'예: OO도자기공방',         menu:'프로그램/요금',        menuPh:'예: 초급반 35,000원, 커플반 60,000원', hours:'운영시간' },
+      '일상': { name:'장소/주제 *',      namePh:'예: OO브랜드 신제품',       menu:'주요 내용',           menuPh:'예: 신제품 정보 등', hours:'이용/운영시간' },
+      '기타': { name:'이름/상호명 *',    namePh:'예: OO스튜디오',           menu:'대표 상품/서비스',     menuPh:'예: 상품명과 가격 또는 특징', hours:'이용시간' }
+    };
+
+    function onPostTypeChange() {
+      var type = document.getElementById('postType').value;
+      var l = TYPE_LABELS[type] || TYPE_LABELS['맛집'];
+
+      document.getElementById('label-name').textContent = l.name;
+      document.getElementById('input-name').placeholder = l.namePh;
+      document.getElementById('label-menu').textContent = l.menu;
+      document.getElementById('input-menu').placeholder = l.menuPh;
+      document.getElementById('label-hours').textContent = l.hours;
+
+      // 유형 직접 입력 필드 토글
+      var otherWrap = document.getElementById('postTypeOtherWrap');
+      var otherInput = document.getElementById('postTypeOther');
+      if (type === '기타') {
+        otherWrap.style.display = 'block';
+        otherInput.disabled = false;
+      } else {
+        otherWrap.style.display = 'none';
+        otherInput.disabled = true;
+      }
+    }
 
     function switchTab(mode, btn) {
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -336,19 +382,43 @@
       }
     }
 
-    function copyPostText() {
-      var ta = document.getElementById('postResultText');
+    // 서식(굵은 소제목) 포함 복사 - postResultHtml 영역을 통째로 선택해서 복사
+    function copyRichPost() {
+      var el = document.getElementById('postResultHtml');
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      sel.removeAllRanges();
+      if (ok) {
+        alert('포스팅이 복사됐어요! (소제목 굵은 글씨 서식 포함)\n네이버 블로그 에디터에 붙여넣기 하세요.');
+      } else {
+        alert('서식 포함 복사에 실패했어요. "일반 텍스트 복사"를 이용해주세요.');
+      }
+    }
+
+    // 서식 없는 일반 텍스트 복사 (백업용)
+    function copyPlainPost() {
+      var text = document.getElementById('postResultPlain').value;
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(ta.value).then(function() {
-          alert('포스팅이 복사됐어요!\n네이버 블로그 에디터에 붙여넣기 하세요.');
+        navigator.clipboard.writeText(text).then(function() {
+          alert('포스팅이 복사됐어요! (서식 없음)');
         });
       } else {
+        var ta = document.getElementById('postResultPlain');
+        ta.style.display = 'block';
         ta.select(); document.execCommand('copy');
+        ta.style.display = 'none';
         alert('포스팅이 복사됐어요!');
       }
     }
 
     window.onload = function() {
+      onPostTypeChange();
+
       var activeTab = /*[[${activeTab}]]*/ null;
       if (activeTab === 'guide') {
         switchTab('guide', document.getElementById('tab-btn-guide'));

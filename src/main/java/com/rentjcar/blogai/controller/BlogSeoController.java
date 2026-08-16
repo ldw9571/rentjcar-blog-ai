@@ -25,31 +25,41 @@ public class BlogSeoController {
     }
 
     // ─────────────────────────────────────────
-    // SEO 분석
+    // SEO 분석 (1~5회 반복 후 최고 점수 채택)
     // ─────────────────────────────────────────
     @PostMapping("/seo/analyze")
     public String analyze(
             @RequestParam("keyword") String keyword,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
+            @RequestParam(value = "rounds", defaultValue = "1") int rounds,
             Model model) {
 
-        if (!usageService.canUse()) {
-            model.addAttribute("errorMsg", "❌ 오늘의 무료 횟수(" + usageService.getDailyLimit() + "회)를 모두 사용했습니다.");
+        int safeRounds = Math.max(1, Math.min(rounds, 5));
+
+        if (usageService.getRemainingCount() < safeRounds) {
+            model.addAttribute("errorMsg",
+                    "❌ 오늘의 무료 횟수(" + usageService.getDailyLimit() + "회)가 부족해요. " +
+                            "선택하신 " + safeRounds + "회 분석에는 " + safeRounds + "회가 필요합니다. " +
+                            "(현재 남은 횟수: " + usageService.getRemainingCount() + "회)");
             model.addAttribute("keyword", keyword);
             model.addAttribute("title", title);
             model.addAttribute("content", content);
+            model.addAttribute("rounds", safeRounds);
             model.addAttribute("activeTab", "analyze");
             addUsageInfo(model);
             return "seo";
         }
         try {
-            String result = blogSeoService.analyze(keyword, title, content);
-            usageService.increaseCount();
+            String result = blogSeoService.analyzeBest(keyword, title, content, safeRounds);
+            for (int i = 0; i < safeRounds; i++) {
+                usageService.increaseCount();
+            }
             model.addAttribute("analyzeResult", result);
             model.addAttribute("keyword", keyword);
             model.addAttribute("title", title);
             model.addAttribute("content", content);
+            model.addAttribute("rounds", safeRounds);
             model.addAttribute("activeTab", "analyze");
             addUsageInfo(model);
             return "seo";
@@ -58,6 +68,7 @@ public class BlogSeoController {
             model.addAttribute("keyword", keyword);
             model.addAttribute("title", title);
             model.addAttribute("content", content);
+            model.addAttribute("rounds", safeRounds);
             model.addAttribute("activeTab", "analyze");
             addUsageInfo(model);
             return "seo";
@@ -65,15 +76,16 @@ public class BlogSeoController {
     }
 
     // ─────────────────────────────────────────
-    // 포스팅 가이드라인 + 완성본 생성
+    // 포스팅 가이드라인 + 완성본 생성 (맛집/여행/숙소/체험/일상 등 다중 카테고리)
     // ─────────────────────────────────────────
     @PostMapping("/seo/guide")
     public String guide(
             @RequestParam("guideKeyword")   String keyword,
-            @RequestParam("restaurantName") String restaurantName,
+            @RequestParam(value = "postType", defaultValue = "맛집") String postType,
+            @RequestParam(value = "postTypeOther", required = false, defaultValue = "") String postTypeOther,
+            @RequestParam("restaurantName") String name,
             @RequestParam("address")        String address,
             @RequestParam("phone")          String phone,
-            @RequestParam("category")       String category,
             @RequestParam("hours")          String hours,
             @RequestParam("menu")           String menu,
             @RequestParam("myReview")       String myReview,
@@ -81,13 +93,15 @@ public class BlogSeoController {
 
         if (!usageService.canUse()) {
             model.addAttribute("errorMsg", "❌ 오늘의 무료 횟수(" + usageService.getDailyLimit() + "회)를 모두 사용했습니다.");
-            model.addAttribute("myReview",       myReview);
+            model.addAttribute("myReview", myReview);
+            model.addAttribute("postType", postType);
+            model.addAttribute("postTypeOther", postTypeOther);
             addUsageInfo(model);
             return "seo";
         }
         try {
             String raw = blogSeoService.generateGuideAndPost(
-                    keyword, restaurantName, address, phone, category, hours, menu, myReview);
+                    keyword, postType, postTypeOther, name, address, phone, hours, menu, myReview);
             usageService.increaseCount();
 
             // 가이드 / 포스팅 파싱
@@ -100,20 +114,28 @@ public class BlogSeoController {
             if (gs >= 0 && ge > gs) guide = raw.substring(gs + "===GUIDE_START===".length(), ge).trim();
             if (ps >= 0 && pe > ps) post  = raw.substring(ps + "===POST_START===".length(), pe).trim();
 
-            model.addAttribute("guideResult",    guide);
-            model.addAttribute("postResult",     post);
-            model.addAttribute("guideKeyword",   keyword);
-            model.addAttribute("restaurantName", restaurantName);
-            model.addAttribute("address",        address);
-            model.addAttribute("phone",          phone);
-            model.addAttribute("category",       category);
-            model.addAttribute("hours",          hours);
-            model.addAttribute("menu",           menu);
+            // 소제목 마커 -> 굵은 글씨(19px) HTML 변환 + 금지 기호/이모지 제거
+            String postHtml  = blogSeoService.formatPostAsHtml(post);
+            String postPlain = blogSeoService.formatPostAsPlain(post);
+
+            model.addAttribute("guideResult",     guide);
+            model.addAttribute("postResultHtml",  postHtml);
+            model.addAttribute("postResultPlain", postPlain);
+            model.addAttribute("guideKeyword",    keyword);
+            model.addAttribute("postType",        postType);
+            model.addAttribute("postTypeOther",   postTypeOther);
+            model.addAttribute("restaurantName",  name);
+            model.addAttribute("address",         address);
+            model.addAttribute("phone",           phone);
+            model.addAttribute("hours",           hours);
+            model.addAttribute("menu",            menu);
             model.addAttribute("activeTab", "guide");
             addUsageInfo(model);
             return "seo";
         } catch (RuntimeException e) {
             model.addAttribute("errorMsg", resolveErrorMsg(e.getMessage()));
+            model.addAttribute("postType", postType);
+            model.addAttribute("postTypeOther", postTypeOther);
             model.addAttribute("activeTab", "guide");
             addUsageInfo(model);
             return "seo";

@@ -44,3 +44,6 @@ application-local.properties
 
 ### 로컬 전용 설정 ###
 gradle.properties
+
+### 분양 블로그 저장 데이터 (내부 자료 - 커밋 금지) ###
+estate-data/
